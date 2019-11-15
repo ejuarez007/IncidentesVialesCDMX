@@ -4,31 +4,28 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-
-desde  dash.exceptions importar  PreventUpdate
-
+from dash.exceptions import PreventUpdate
+#desde = dash.exceptions importar PreventUpdate
 from pymongo import MongoClient
-
 from dash.dependencies import Input, Output
-
 from sistema import Directorio
 from Classes import Datos, ClaseMongo
 
-directorio = "./Datos"
+directorio = "./datos/"
 objDirectorio = Directorio(directorio)
-lista_archivos = objDirectorio.recupera_archivos()
+lista_archivos = objDirectorio.read_file_names()
 options = [{"label":label,"value":label} for label in lista_archivos]
 
 
 app = dash.Dash (__name__ , external_stylesheets=[dbc.themes.BOOTSTRAP])
-Elem-1 = html.Div([html.H1("Controles", className = "display-1"), 
+Elem_1 = html.Div([html.H1("Controles", className = "display-1"), 
         dcc.Input(id="test_input",className ="alert alert-secondary"), 
         dcc.Dropdown(id="lista_archivos", options = options)])
-Elem-2 = html.Div([html.H2("Respuestas", id="respuesta", className = "display-4"),html.Div(id="div-respuesta")])
+Elem_2 = html.Div([html.H2("Respuestas", id="respuesta", className = "display-4"),html.Div(id="div-respuesta")])
 
-Elem-3 = html.div([])
+Elem_3 = html.Div([])
 
-app.layout = html.Div ([Elem1,Elem2,dcc.Dropdown(id="column",options=[])], className ="alert alert-primary")
+app.layout = html.Div ([Elem_1,Elem_2,dcc.Dropdown(id="column",options=[])], className ="alert alert-primary")
 
 
 @app.callback (Output("respuesta","children"), [Input("test_input","value")])
@@ -42,9 +39,9 @@ def regresa_columnas (nombre_archivo):  #nombre_archivo hace referencia al "valu
         path = f"./datos/{nombre_archivo}"
         objDatos = Datos(path)
         if nombre_archivo=="incidentes-viales-c5.csv":
-            comma=";"
-        else: comma=","
-        df = objDatos.leer_datos(comma)
+            comma = ";"
+        else: comma = ","
+        df = objDatos.read_data(comma)
         options = [{"label":label,"value":label} for label in df.columns]
     else: options = []
     return options
@@ -57,14 +54,13 @@ def cargar_respuesta (columna,nombre_archivo):
         if nombre_archivo=="incidentes-viales-c5.csv":
             comma=";"
         else: comma=","
-        df = objDatos.leer_datos(comma)
-        v_unicos = objDatos.valores_unicos(df,columna)
+        df = objDatos.read_data(comma)
+        v_unicos = objDatos.unique_values(df,columna)
         print("Valores unicos: ", v_unicos)
         JSON = {str(index):value for index,value in enumerate(v_unicos)}
         print("Cadena JSON: ", JSON)
         objMongo = ClaseMongo(JSON,"db_prueba","collection")
-        objMongo.insert(conn)
-
+        objMongo.insert()
         resultado = "Datos guardados"
     else: resultado = ""
     return resultado
